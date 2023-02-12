@@ -6,3 +6,6 @@ venv
 
 # Ignore .vscode
 .vscode
+
+# Ignore .env
+.env
