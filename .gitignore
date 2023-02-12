@@ -3,3 +3,6 @@
 
 # Ignore venv
 venv
+
+# Ignore .vscode
+.vscode
