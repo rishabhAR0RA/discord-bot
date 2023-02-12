@@ -27,6 +27,18 @@ def run_discord_bot():
         await bot.change_presence(activity=discord.Game("Going through Infinity"))
         print(f"Connected to bot: {bot.user}")
 
+    @bot.command(brief="Adds given numbers in N N format.", help="Example: !add 1 2 3")
+    async def add(ctx, *args: int):
+        """Adds given numbers in N N format."""
+        result = 0
+        for i in args:
+            try:
+                result += int(i)
+            except ValueError:
+                await ctx.send("Please input only numbers!")
+                return
+        await ctx.send(f"Result : {result}")
+
     try:
         bot.run(DISCORD_BOT_TOKEN)
     except discord.errors.LoginFailure as e:
