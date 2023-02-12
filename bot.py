@@ -17,6 +17,14 @@ def run_discord_bot():
     intents.message_content = True
     bot = commands.Bot(command_prefix="!", intents=intents)
 
+    @bot.command(
+        brief="The bot will respond with the message 'Hi there!'",
+        help="Example: !hello",
+    )
+    async def hello(ctx):
+        """The bot will respond with the message 'Hi there!'"""
+        await ctx.send("Hi there!")
+
     @bot.event
     async def on_ready():
         """
