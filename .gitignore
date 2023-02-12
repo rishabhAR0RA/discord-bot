@@ -9,3 +9,6 @@ venv
 
 # Ignore .env
 .env
+
+# Ignore __pycache__
+__pycache__
