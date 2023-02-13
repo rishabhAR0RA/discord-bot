@@ -1,6 +1,7 @@
 from discord.ext import commands
 import discord
 import random
+import requests
 from os import environ as env
 from dotenv import load_dotenv
 
@@ -11,7 +12,8 @@ def run_discord_bot():
     """
     load_dotenv()
 
-    DISCORD_BOT_TOKEN = env["DISCORD_BOT_TOKEN"]
+    DISCORD_BOT_TOKEN = env["DISCORD_BOT_TOKEN"]  # Your token
+    WEATHER_KEY = env["WEATHER_KEY"]  # Your token
 
     intents = discord.Intents.default()
     intents.message_content = True
@@ -82,6 +84,53 @@ def run_discord_bot():
 
         for i in range(times):
             await ctx.send(content)
+
+    @bot.command(
+        name="weather",
+        brief="Get the current weather condition for a city",
+        help="Example: !weather London",
+    )
+    async def weather(ctx, *, city: str):
+        try:
+            weather_url = "https://api.weatherapi.com/v1/current.json"
+            parameters = {
+                "key": WEATHER_KEY,
+                "q": city,
+            }
+
+            response = requests.get(weather_url, params=parameters)
+            response.raise_for_status()
+
+            data = response.json()
+            condition = data["current"]["condition"]["text"]
+            temperature = data["current"]["temp_c"]
+            weather_icon_url = data["current"]["condition"]["icon"]
+            humidity = data["current"]["humidity"]
+            wind_kph = data["current"]["wind_kph"]
+            wind_dir = data["current"]["wind_dir"]
+            precip_mm = data["current"]["precip_mm"]
+            localtime = data["location"]["localtime"]
+
+            embed = discord.Embed(
+                title=f"Weather in {city}",
+                description=f"Current condition: {condition}",
+                color=0x00FF00,
+            )
+            embed.add_field(name="Temperature", value=f"{temperature}°C")
+            embed.add_field(name="Humidity", value=f"{humidity}%")
+            embed.add_field(
+                name="Wind Speed",
+                value=f"{wind_kph} kph, direction: {wind_dir}",
+            )
+            embed.add_field(name="Precipitation", value=f"{precip_mm} mm")
+            embed.set_image(url=f"https:{weather_icon_url}")
+            embed.add_field(name="Local Time", value=f"{localtime}")
+
+            await ctx.send(embed=embed)
+        except requests.exceptions.RequestException as e:
+            await ctx.send(
+                "Could not retrieve weather information. Please try again later."
+            )
 
     try:
         bot.run(DISCORD_BOT_TOKEN)
