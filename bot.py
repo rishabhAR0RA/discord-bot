@@ -59,6 +59,30 @@ def run_discord_bot():
         result = ", ".join(str(random.randint(1, limit)) for r in range(rolls))
         await ctx.send(result)
 
+    @bot.command(
+        brief="Chooses between multiple choices.",
+        help="Example: !choose option1 option2",
+    )
+    async def choose(ctx, *choices: str):
+        """Chooses between multiple choices."""
+        await ctx.send(random.choice(choices))
+
+    @bot.command(
+        brief="Repeats a message multiple times.",
+        help="Example: !repeat 3 this is a repeating message",
+    )
+    async def repeat(ctx, times: int, content="repeating..."):
+        """Repeats a message multiple times."""
+        try:
+            if times < 0:
+                raise ValueError("Cannot repeat a negative number of times!")
+        except ValueError as e:
+            await ctx.send(str(e))
+            return
+
+        for i in range(times):
+            await ctx.send(content)
+
     try:
         bot.run(DISCORD_BOT_TOKEN)
     except discord.errors.LoginFailure as e:
