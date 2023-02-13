@@ -47,6 +47,18 @@ def run_discord_bot():
                 return
         await ctx.send(f"Result : {result}")
 
+    @bot.command(brief="Rolls a dice in N N format.", help="Example: !roll 2 6")
+    async def roll(ctx, dice: str):
+        """Rolls a dice in N N format."""
+        try:
+            rolls, limit = map(int, dice.split(" "))
+        except ValueError:
+            await ctx.send("Format has to be in NdN!")
+            return
+
+        result = ", ".join(str(random.randint(1, limit)) for r in range(rolls))
+        await ctx.send(result)
+
     try:
         bot.run(DISCORD_BOT_TOKEN)
     except discord.errors.LoginFailure as e:
