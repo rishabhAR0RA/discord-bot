@@ -1,5 +1,6 @@
 from discord.ext import commands
 import discord
+import openai
 import random
 import requests
 from os import environ as env
@@ -14,6 +15,7 @@ def run_discord_bot():
 
     DISCORD_BOT_TOKEN = env["DISCORD_BOT_TOKEN"]  # Your token
     WEATHER_KEY = env["WEATHER_KEY"]  # Your token
+    OPENAI_KEY = env["OPENAI_KEY"]  # Your token
 
     intents = discord.Intents.default()
     intents.message_content = True
@@ -86,11 +88,41 @@ def run_discord_bot():
             await ctx.send(content)
 
     @bot.command(
+        brief="Generate an image according to prompt provided",
+        help="Example: !img Mango",
+    )
+    async def image(ctx, prompt: str):
+        try:
+            openai_endpoint = "https://api.openai.com/v1/images/generations"
+            openai_header = {
+                "Authorization": f"Bearer {OPENAI_KEY}",
+                "Content-Type": "application/json",
+            }
+            openai_config = {
+                "prompt": prompt,
+            }
+            openai_response = requests.post(
+                url=openai_endpoint, json=openai_config, headers=openai_header
+            )
+            openai_data = openai_response.json()["data"][0]["url"]
+            embed = discord.Embed(
+                title="AI generated image",
+                description=f"{prompt}",
+                color=0xA6569B,
+            )
+            embed.set_image(url=openai_data)
+            await ctx.send(embed=embed)
+        except requests.exceptions.RequestException as e:
+            await ctx.send(
+                "Could not retrieve openai information. Please try again later."
+            )
+
+    @bot.command(
         name="weather",
         brief="Get the current weather condition for a city",
         help="Example: !weather London",
     )
-    async def weather(ctx, *, city: str):
+    async def weather(ctx, city: str):
         try:
             weather_url = "https://api.weatherapi.com/v1/current.json"
             parameters = {
@@ -116,6 +148,8 @@ def run_discord_bot():
                 description=f"Current condition: {condition}",
                 color=0x00FF00,
             )
+
+            embed.set_thumbnail(url=f"https:{weather_icon_url}")
             embed.add_field(name="Temperature", value=f"{temperature}°C")
             embed.add_field(name="Humidity", value=f"{humidity}%")
             embed.add_field(
@@ -123,7 +157,6 @@ def run_discord_bot():
                 value=f"{wind_kph} kph, direction: {wind_dir}",
             )
             embed.add_field(name="Precipitation", value=f"{precip_mm} mm")
-            embed.set_image(url=f"https:{weather_icon_url}")
             embed.add_field(name="Local Time", value=f"{localtime}")
 
             await ctx.send(embed=embed)
